@@ -78,8 +78,11 @@ ClassList["savant"] = { //Object name; Note the use of only lower case! Also not
 				"Bonus action ability check using any Int or Wis-based skill which I am proficient in.",
 				"Bonus action mark a creature I can see within 60ft",
 				"can use Int for weapon attack and damage against marked creature.",
+				"If hit or spend 1 minute learn one of the following characteristics of your choice:",
+				"its AC, max hp, movement speed, or one ability scores.",
 				"This mark lasts for 1 minute. It ends if I end it as a bonus action,",
 				"am incapacitated, or mark another creature."
+
             ]), //required; the text to put in the "Class Features" field
 			action : ["bonus action", ""],
 			calcChanges : {
@@ -104,7 +107,7 @@ ClassList["savant"] = { //Object name; Note the use of only lower case! Also not
 		"perfect recall" : {
 			name : "Perfect Recall",
 			source : ["GMB:LL", 2],
-			minlevel : 2,
+			minlevel : 1,
 			description : desc([
 				"If I spend at least 1 minute observing and committing something to memory,",
 				"I can recall any information about my observations without an ability check."
@@ -121,13 +124,29 @@ ClassList["savant"] = { //Object name; Note the use of only lower case! Also not
 				"Use this feature after you roll, but before you know whether you succeed or fail."
                 ]),
             additional : levels.map(function (n) {
-                return (n < 10 ? "1d4" : n < 15 ? "1d6": n < 20 ? "1d8" : "1d10")
+                return (n < 10 ? "1d6" : n < 15 ? "1d8": n < 20 ? "1d10" : "1d12")
             }),
 			action : ["reaction", ""], //optional; adds the name of this feature to the bonus action list when chosen. The options are "action", "bonus action", and "reaction"
 			savetxt : { // Optional; this attribute defines entries to add to the field for "Saving Throw Advantages / Disadvantages"
 				text : ["Unyielding Mind"], // Optional; this is an array of strings, and each of those strings is added to the field exactly as presented here
 			},
+			usages : "Intelligence modifier",
+			usagescalc : "event.value = Math.max(1, What('Int Mod'));",
 		},
+
+        "expert student":{
+            name:"Expert Student",
+			source : ["GMB:LL", 3],
+			minlevel : 2,
+            description : desc([
+				"At the end of a short or long rest, I can choose to learn one language,",
+				"or one tool, skill, or weapon proficiency of my choice,",
+				"as long as there is an example on hand for myself to learn from.",
+				"I can gain only one per long rest(lvl 7:or short rest) up to Int mod(min 1).",
+				]),
+			usages : "Intelligence modifier",
+			usagescalc : "event.value = Math.max(1, What('Int Mod'));",
+        },
 
 		"subclassfeature3" : { //You need at least one entry named "subclassfeatureX". It signals the sheet to ask the user for which subclass he would like to have. The level of this feature should match the level the class needs to select a subclass. Once a subclass is selected, any feature with "subclassfeature" in the object name in the class entry will be ignored.
 			name : "Academic Discipline",
@@ -159,19 +178,20 @@ ClassList["savant"] = { //Object name; Note the use of only lower case! Also not
             additional : levels.map(function (n) {return (n < 11 ? "1d10 damage" : "2d10 damage")}),
             action : ["reaction",""]
         },
-        "expert student":{
-            name:"Expert Student",
+
+		"Keen Awareness":{
+            name:"Keen Awareness",
 			source : ["GMB:LL", 3],
-			minlevel : 6,
+			minlevel : 7,
             description : desc([
-				"At the end of a short or long rest, I can choose to learn one language,",
-				"or one tool, skill, or weapon proficiency of my choice,",
-				"as long as there is an example on hand for myself to learn from.",
-				"I can gain only one per short/long rest up to Int mod(min 1).",
+				"Add Int mod to initiative rolls (min 1).",
+				"Cannot be surprised unless you are asleep or incapacitated"
 				]),
-			usages : "Intelligence modifier",
-			usagescalc : "event.value = Math.max(1, What('Int Mod'));",
+			addMod : { type : "skill", field : "Init", mod : "max(1|int)", text : "I can add my Intelligence modifier to initiative rolls." }
+			//usages : "Intelligence modifier",
+			//usagescalc : "event.value = Math.max(1, What('Int Mod'));",
         },
+
         "expert educator":{
             name:"Expert Educator",
 			source : ["GMB:LL", 3],
@@ -189,25 +209,25 @@ ClassList["savant"] = { //Object name; Note the use of only lower case! Also not
 			source : ["GMB:LL", 3],
 			minlevel : 11,
             description : desc([
-				"Can use Potent Observation reaction even if the target of the attack is not marked by my Adroit Analysis.",
+				"Can use Potent Observation even if the target is not marked by my Adroit Analysis.",
 				"Potent Observation also gains bonus damage equal to my Int mod(min 1)."
                 ]),
 			additional : ["Intelligence modifier bonus damage"],
 			eval : "RemoveAction(\"reaction\", \"Potent Observation\"); AddAction(\"reaction\", \"Flawless Observation\", \"Savant\")", //eval is custom code that is run when the feature is added. It is used here, because the "Second Wind" bonus action is removed, and replaced by the "Second Wind (+ Rallying Cry)" bonus action. If you instead just want to add a bonus action for "Rallying Cry", use the action object (i.e. action : ["bonus action", ""],)
 			removeeval : "RemoveAction(\"reaction\", \"Flawless Observation\"); AddAction(\"reaction\", \"Potent Observation\", \"Savant\")", //removeeval is custom code that is run when the feature is removed. Here the "Second Wind (+ Rallying Cry)" bonus action is removed and replaced by the plain "Second Wind" bonus action
         },
-        "iron will":{
-            name:"Iron Will",
+        "unyielding will":{
+            name:"Unyielding Will",
 			source : ["GMB:LL", 3],
 			minlevel : 14,
             description : desc([
 				"If I fail a saving throw against being charmed, frightened, or stunned,",
-				"I can choose to succeed instead.",
+				"I can choose to expend a use of unyielding mind to succeed instead.",
                 ]),
-            usages : 1, //optional; number of times it can be used. This can be one value, but can also be an array of 20 values, one for each level. It is recommended to use a numerical value, but if you use a string, include " per " at the end, like "1d10 per "
-			recovery : "short rest",
+            //usages : 1, //optional; number of times it can be used. This can be one value, but can also be an array of 20 values, one for each level. It is recommended to use a numerical value, but if you use a string, include " per " at the end, like "1d10 per "
+			//recovery : "short rest",
             savetxt : { // Optional; this attribute defines entries to add to the field for "Saving Throw Advantages / Disadvantages"
-				text : ["Iron Will"], // Optional; this is an array of strings, and each of those strings is added to the field exactly as presented here
+				text : ["Unyielding Will"], // Optional; this is an array of strings, and each of those strings is added to the field exactly as presented here
 			},
         },
         "profound insight":{
@@ -265,7 +285,7 @@ AddSubClass( // this is the function you will be calling to add the variant
 				description : desc([
 					"My studies allow me to use Medicine as an Intelligence-based skill.",
 					"Gain prof in medicine and Herbalism kit, prof bonus is doubled for checks with those skills",
-					"When I mark a creature with Adroit Analysis, I learn the creature's current hit points."
+					"Adroit Analysis choices now include creature's current hit points, hit dice."
 				]),
 				addMod : [
 					{
@@ -306,14 +326,15 @@ AddSubClass( // this is the function you will be calling to add the variant
 				"Adrenaline Boost; Crippling Strike; Dress Wounds; Healing Surge; Stabilize.",
 				"Details on the above actions can be found on the notes page"
 				]),
+			action : ["action",""],
 			eval : function() {
 				combtMedicActionsStr = 
 					"Combat Medic Actions:"
-					+"\n\u25C6 Adrenaline Boost\nA humanoid creature you touch can use its reaction to repeat a saving throw to end one of the following conditions affecting it: blinded, charmed, deafened, frightened, or poisoned. It gains a bonus to its roll equal to your Intelligence modifier (minimum of 1)."
-					+"\n\u25C6 Crippling Strike\nYou target an anatomical weak point of your foe. Make a weapon attack against a creature. On hit, in addition to the normal effects of the attack, you reduce the movement speed of the target by an amount equal to 5 times your Intelligence modifier (minimum of 5 feet). This speed reduction lasts until the start of your next turn."
-					+"\n\u25C6 Dress Wounds\nYou soothe the aches and pains of your allies. At the end of a short rest you can touch a number of creatures, including yourself, equal to your Intelligence modifier (minimum of 1). They immediately gain temporary hit points equal to 1d6 + your proficiency bonus."
-					+"\n\u25C6 Healing Surge\nYou use medicinal techniques to stimulate healing. A humanoid creature you touch can use its reaction to expend 1 of their Hit Die. The target immediately regains hit points equal to their Hit Die roll + their Constitution modifier + your Intelligence modifier (minimum of 1)."
-					+"\n\u25C6 Stabilize\nYou use your knowledge to stabilize a creature. You touch a living humanoid creature that has 0 hit points and it becomes stable. The creature can then choose to expend 1 of their Hit Die to regain hit points equal to the maximum value of the Hit Die + their Constitution modifier."
+					+"\n\u25C6 Adrenaline Boost\nA creature that is blinded, charmed, deafened, frightened, or poisoned can use its reaction to repeat a saving throw to end their condition, adding your Intelligence modifier (minimum of +1) to their roll."
+					+"\n\u25C6 Crippling Strike\nMake a weapon attack against the target. On hit, in addition to the normal damage of the attack, the creature's movement speed is reduced by an amount of feet equal to 5 times your Intelligence modifier (minimum 5 feet). This reduction lasts until the start of your next turn."
+					+"\n\u25C6 Dress Wounds\nThe target immediately gains temporary hit points equal to 1d6 + your proficiency bonus, replacing any temporary hit points they currently have."
+					+"\n\u25C6 Healing Surge\nThe target can use its reaction to expend one of their Hit Dice to regain hit points equal to their Hit Die roll + their Constitution modifier + your Intelligence modifier."
+					+"\n\u25C6 Stabilize\nYou touch a living creature that has 0 hit points, automatically stabilizing them. The target can then choose to expend a Hit Die to immediately regain hit points equal to the maximum value of that Hit Die + their Constitution modifier."
 				
 				AddString('Extra.Notes', combtMedicActionsStr, true);
 				show3rdPageNotes();
@@ -331,10 +352,10 @@ AddSubClass( // this is the function you will be calling to add the variant
 				},
 			},
 
-			"subclassfeature7" : {
+			"subclassfeature6" : {
 				name : "Field Doctor",
 				source : ["GMB:LL", 7],
-				minlevel : 7,
+				minlevel : 6,
 				description : desc([
 					"If I restore hit points, grant temporary hit points, or stabilize another creature,",
 					"I gain the effects of the Dodge action until the start of my next turn.",
@@ -350,22 +371,24 @@ AddSubClass( // this is the function you will be calling to add the variant
 				minlevel : 10,
 				description : desc([
 					"I gain access to the following additional options for my Combat Medic feature:",
-					"Restorative Boost; Resuscitate.",
+					"Regenerate; Restorative Boost; Resuscitate.",
 					"Details on the above actions can be found on the notes page",
 				]),
 				eval : function() {
 					advanceMedActionsStr = 
 						"\nCombat Medic Actions (Advanced Medicine) [1 x per short rest]"
-						+"\n\u25C6 Restorative Boost\nYou touch a humanoid creature and alleviate a debilitating effect. You end any reduction to one of the target's ability scores, end an effect reducing the target's hit point maximum, reduce its exhaustion level by one, or end one of the following conditions on it: blinded, charmed, deafened, frightened, paralyzed, or poisoned."
-						+"\n\u25C6 Resuscitate\nYou touch a humanoid creature that has died within the last minute. It is returned to life with 1 hit point as if you had cast the revivify spell on the creature."
+						+"\n\u25C6 Regenerate. The target regains 4d8 hit points. For the next ten minutes, the target regains 1 hit point at the start of each of its turns. If they have a severed body part, you can hold it to the stump and instantaneously reattach it."
+						+"\n\u25C6 Restorative Boost. You touch a creature and immediately end one of the following effects: a reduction to an ability score, a reduction to its hit point maximum, one level of exhaustion, or the blinded, charmed, deafened, frightened, paralyzed, or poisoned condition., or end one of the following conditions on it: blinded, charmed, deafened, frightened, paralyzed, or poisoned."
+						+"\n\u25C6 Resuscitate. You touch a humanoid creature that has died within the last minute. It immediately returns to life with 1 hit point. This feature cannot bring back a creature that has died of old age, nor can it restore missing body parts."
 					AddString('Extra.Notes', advanceMedActionsStr, true);
 					show3rdPageNotes();
 				},
 				removeeval : function() {
 					advanceMedActionsStr = 
 						"\nCombat Medic Actions (Advanced Medicine) [1 x per short rest]"
-						+"\n\u25C6 Restorative Boost\nYou touch a humanoid creature and alleviate a debilitating effect. You end any reduction to one of the target's ability scores, end an effect reducing the target's hit point maximum, reduce its exhaustion level by one, or end one of the following conditions on it: blinded, charmed, deafened, frightened, paralyzed, or poisoned."
-						+"\n\u25C6 Resuscitate\nYou touch a humanoid creature that has died within the last minute. It is returned to life with 1 hit point as if you had cast the revivify spell on the creature."
+						+"\n\u25C6 Regenerate. The target regains 4d8 hit points. For the next ten minutes, the target regains 1 hit point at the start of each of its turns. If they have a severed body part, you can hold it to the stump and instantaneously reattach it."
+						+"\n\u25C6 Restorative Boost. You touch a creature and immediately end one of the following effects: a reduction to an ability score, a reduction to its hit point maximum, one level of exhaustion, or the blinded, charmed, deafened, frightened, paralyzed, or poisoned condition., or end one of the following conditions on it: blinded, charmed, deafened, frightened, paralyzed, or poisoned."
+						+"\n\u25C6 Resuscitate. You touch a humanoid creature that has died within the last minute. It immediately returns to life with 1 hit point. This feature cannot bring back a creature that has died of old age, nor can it restore missing body parts."
 					RemoveString('Extra.Notes', advanceMedActionsStr, true);
 				},
 				usages : 1,
