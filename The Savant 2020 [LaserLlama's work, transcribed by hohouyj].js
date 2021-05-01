@@ -132,6 +132,7 @@ ClassList["savant"] = { //Object name; Note the use of only lower case! Also not
 			},
 			usages : "Intelligence modifier",
 			usagescalc : "event.value = Math.max(1, What('Int Mod'));",
+			recovery : "short rest",
 		},
 
         "expert student":{
